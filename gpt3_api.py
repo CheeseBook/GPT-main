@@ -25,7 +25,7 @@ class Demo(object):
         completion = client.chat.completions.create(
             model=self.model,
             messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "system", "content": "You are a helpful assistant designed to generate synthetic data."},
                 {"role": "user", "content": prompt}
             ],
             temperature=self.temperature,
@@ -59,5 +59,17 @@ def run(prompt_list):
 
 
 if __name__ == '__main__':
-    prompt_list = "现你要依据标签来生成文本，每个文本包含三类标签<ENTITY><NUM><UNIT>，每个标签的冒号后面代表你要生成的文本长度，比如<ENTITY:3>代表你要生成长度为3的实体。<NUM:2>代表你要生成长度为2的数字，<UNIT:2>代表你要生成长度为2的单位。要求生成的结果与上下文的合理性，保持通顺，实体、数量、单位要合理。生成的结果替换原来标签的位置，然后你返回生成后的文本：ID:453237#体格检查:<ENTITY:2><NUM:5><UNIT:2>,<ENTITY:2><NUM:2><UNIT:3>,<ENTITY:4><NUM:2><UNIT:3>,<ENTITY:2><NUM:6><UNIT:4>,<ENTITY:2><NUM:4><UNIT:2>,一般状况:发育：正常,体型：适中,营养：营养良好,口渴：无,表情：自然,体位：自主,神志：清醒,查体：合作,周围血管：桡动脉搏动：正常,足背动脉搏动：正常,微血管充盈：毛细血管充盈良好,皮肤粘膜(烧伤创面见专科情况)：色泽：正常,皮疹：无,皮下出血：无,温度：正常,湿度：正常,弹性：弹性正常,水肿：无,浅表淋巴结：无,肿大。"
+    prompt_list = f"""
+    我正在创建输入输出训练对来微调我的 gpt 模型。我希望输入是几个实体名称和实体类别，输出是合成描述。类别应该是：ENTITY、NUM、UNIT。更重要的是，类别应该属于烧伤科主题：
+    每个示例的编号后还应说明主题领域。格式应为以下形式：
+    1. 主题领域
+    输入：实体名称1、实体类别1；实体名称2、实体类别2；实体名称3、实体类别3
+    输出：合成描述，实体标注
+    不要在该格式周围添加任何额外的字符，因为这会导致输出解析中断。
+    以下是一些有用的例子，可帮助您获得正确的输出样式。
+    
+    1) 烧伤科
+    输入：“心率、ENTITY；112、NUM；次/分、UNIT”
+    输出：”李明患者的心率是112次/分。[李(0)明(1)患(2)者(3)的(4)心(5)率(6)是(7)1(8)1(9)2(10)次(11)/(12)分(13)][(5,6,ENTITY),(8,10,NUM),(11,13,UNIT)]“
+    """
     run(prompt_list)
