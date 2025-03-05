@@ -43,7 +43,7 @@ class Demo(object):
 
 def run(prompt_list):
     demo = Demo(
-        model="gpt-4o",  # text-davinci-002: best, text-ada-001: lowest price
+        model="deepseek-r1",  # text-davinci-002: best, text-ada-001: lowest price
         temperature=0,  # control randomness: lowring results in less random completion (0 ~ 1.0)
         max_tokens=1000,  # max number of tokens to generate (1 ~ 4,000)
         top_p=1,  # control diversity (0 ~ 1.0)
@@ -60,16 +60,16 @@ def run(prompt_list):
 
 if __name__ == '__main__':
     prompt_list = f"""
-    我正在创建输入输出训练对来微调我的 gpt 模型。我希望输入是几个实体名称和实体类别，输出是合成描述。类别应该是：ENTITY、NUM、UNIT。更重要的是，类别应该属于烧伤科主题：
-    每个示例的编号后还应说明主题领域。格式应为以下形式：
-    1. 主题领域
+    我正在创建输入输出训练对来微调我的 gpt 模型。我希望输入是几个实体名称和实体类别，输出是合成描述。类别应该是：ENTITY、NUM、UNIT。生成1个示例即可。
+    格式应为以下形式：
+    1. 
     输入：实体名称1、实体类别1；实体名称2、实体类别2；实体名称3、实体类别3
     输出：合成描述，实体标注
     不要在该格式周围添加任何额外的字符，因为这会导致输出解析中断。
     以下是一些有用的例子，可帮助您获得正确的输出样式。
     
-    1) 烧伤科
-    输入：“心率、ENTITY；112、NUM；次/分、UNIT”
-    输出：”李明患者的心率是112次/分。[李(0)明(1)患(2)者(3)的(4)心(5)率(6)是(7)1(8)1(9)2(10)次(11)/(12)分(13)][(5,6,ENTITY),(8,10,NUM),(11,13,UNIT)]“
+    1) 
+    输入：“最大处、ENTITY；3*2、NUM；c㎡、UNIT”
+    输出：”最大处大小约3*2c㎡。[最(0)大(1)处(2)大(3)小(4)约(5)3(6)*(7)2(8)c(9)㎡(10)][(0,2,ENTITY),(6,8,NUM),(9,10,UNIT)]“
     """
     run(prompt_list)
