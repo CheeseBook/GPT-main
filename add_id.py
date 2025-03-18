@@ -19,5 +19,5 @@ def add_ids_to_json(file_path):
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 # 使用示例
-file_path = 'mqi_dataset/sqi.json'  # 将 'data.json' 替换为你的 JSON 文件路径
+file_path = '../Base-ATG-main/dataset/SQI/sqi.json'  # 将 'data.json' 替换为你的 JSON 文件路径
 add_ids_to_json(file_path)
