@@ -1,66 +1,52 @@
-# -*- coding: utf-8 -*-
-from openai import OpenAI
-import os
-
-api_key = "sk-S18T7dPfh7at8EpHFfF2265800E34897Be8d5bC265C4C79f"
-base_url = "https://api.gptapi.us/v1/chat/completions"
-os.environ["OPENAI_API_KEY"] = api_key
-os.environ["OPENAI_API_BASE"] = base_url
-
-client = OpenAI(api_key=api_key, base_url=base_url)
+import json
 
 
-class Demo(object):
-    def __init__(self, model, temperature, max_tokens, top_p, frequency_penalty, presence_penalty, best_of, logprobs):
-        self.model = model
-        self.temperature = temperature
-        self.max_tokens = max_tokens
-        self.top_p = top_p
-        self.frequency_penalty = frequency_penalty
-        self.presence_penalty = presence_penalty
-        self.best_of = best_of
-        self.logprobs = logprobs
-
-    # prompt_list: List[str]
-    def get_multiple_sample(self, prompt):
-        completion = client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant designed to generate synthetic data."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=self.temperature,
-            max_tokens=self.max_tokens,
-            top_p=self.top_p,
-            frequency_penalty=self.frequency_penalty,
-            presence_penalty=self.presence_penalty,
-            logprobs=self.logprobs
-        )
-
-        results = completion.choices[0].message.content
-        probs = completion.choices[0].logprobs
-        return results, probs
+def load_json(file_path):
+    """从文件加载 JSON 数据"""
+    with open(file_path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
-def run(prompt_list):
-    demo = Demo(
-        model="o1",  # text-davinci-002: best, text-ada-001: lowest price
-        temperature=0,  # control randomness: lowring results in less random completion (0 ~ 1.0)
-        max_tokens=1000,  # max number of tokens to generate (1 ~ 4,000)
-        top_p=1,  # control diversity (0 ~ 1.0)
-        frequency_penalty=0,  # how to penalize new tokens based on their existing frequency (0 ~ 2.0)
-        presence_penalty=0,  # 这个是对于词是否已经出现过的惩罚，文档上说这个值调高可以增大谈论新topic的概率 (0 ~ 2.0)
-        best_of=3,  # 这个是说从多少个里选最好的，如果这里是10，就会生成10个然后选最好的，但是这样会更贵(1 ~ 20)
-        logprobs=True
-    )
-    results, probs = demo.get_multiple_sample(prompt_list)
-    # print(results[0])
-    # print(probs[0])
-    print(results)
+def extract_data_by_ids(data, target_ids):
+    """从 JSON 数据集中提取多个 ID 的数据"""
+    results = []
+    i = 1
+
+    for split in ["train", "dev", "test"]:
+        for entry in data.get(split, []):
+            if entry["id"] in target_ids:
+                tokens = entry["tokens"]
+                ner = entry["ner"]
+                rel = entry["rel"]
+
+                # 1. 生成原始文本（去掉空格）
+                raw_text = "".join(tokens)
+
+                # 2. 生成 token 索引列表
+                token_str = "[" + "".join(f"{t}({i})" for i, t in enumerate(tokens)) + "]"
+
+                # 3. 生成 NER 及关系信息
+                ner_str = json.dumps(ner, ensure_ascii=False, separators=(',', ':'))  # 确保无多余空格
+                rel_str = json.dumps(rel, ensure_ascii=False, separators=(',', ':'))
+
+                # 4. 生成实体信息（严格去除多余空格）
+                entity_info = "；".join(f"{''.join(tokens[start:end + 1])}、{label}" for start, end, label in ner)
+
+                # 5. 格式化输出（确保无多余空格）
+                result = f'{i}.\n输入："{entity_info}"\n输出："{raw_text}"\n{token_str}\n{ner_str}\n{rel_str}'
+                results.append(result)
+                i+=1
+
+    return "\n\n".join(results) if results else "未找到指定 ID 的数据"
 
 
-if __name__ == '__main__':
-    prompt_list = f"""
-    
-    """
-    run(prompt_list)
+# 读取 JSON 文件
+file_path = r"D:\研究生论文项目代码复现\GPT-RE-main\mqi_dataset\sqi.json"  # 替换为你的 JSON 文件路径
+json_data = load_json(file_path)
+
+# 目标 ID 列表
+target_ids = [0,1,2,3]  # 修改为你要查询的多个 ID
+
+# 获取结果并输出
+result = extract_data_by_ids(json_data, target_ids)
+print(result)
